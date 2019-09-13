@@ -1,0 +1,30 @@
+#!/bin/sh
+
+mkdir "tests"
+
+# creates 100 files with random numbers from 1-100. No. of lines are randomised.
+for t in {1..100}
+do
+    shuf -i 1-100 -n $(($RANDOM % 31)) > tests/$t
+done
+
+# compare loop.
+for s in {1..100}
+do
+    sort -n < tests/$s > tests/$s.expected
+    ./useIntList < tests/$s > tests/$s.observed
+    
+    diff tests/$s.expected tests/$s.observed > /dev/null
+    
+    if [ $? -eq 0 ]
+    then
+        echo "test $s .. passed"
+    else
+        echo "test $s .. failed"
+        sdiff tests/$s.expected tests/$s.observed
+    fi
+done
+
+# cleans directory.
+rm -rf "tests"
+
