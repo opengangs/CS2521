@@ -1,0 +1,121 @@
+#!/bin/sh
+make clean && make
+rm timingoutput.txt
+printf "Size    Initial Order   Has Duplicates  Num_runs    Avg_C   Avg_sort\n"> timingoutput.txt
+for t in 10 15 20 30 40 50 75 100
+do
+    #create big unsorted lists!
+    n=$((1000*t))
+    ./randList $n >/tmp/nums
+    cTotal=0
+    sortTotal=0
+ 
+    for i in {1..10}; do
+        #grab C sort time
+        cCommand=$((time ./useIntList < /tmp/nums &>/tmp/out1)2>&1)
+ 
+ 
+        cTime=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        cMins=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        cSeconds=$(echo "$cTime" | cut -c 4-)
+        cMinsAsSeconds=$(echo "$cMins * 60" | bc)
+ 
+        cTotalSeconds=$(echo "$cSeconds + $cMinsAsSeconds"|bc)
+ 
+ 
+ 
+ 
+ 
+        # #grab sort times
+        sortCommand=$((time sort -n </tmp/nums &>/tmp/out2) 2>&1)
+       
+        sortTime=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        sortMins=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        sortSeconds=$(echo $sortTime|cut -c 4-)
+        sortMinsAsSeconds=$(echo "$sortMins * 60" | bc -l)
+        sortTotalSeconds=$(echo "$sortSeconds + $sortMinsAsSeconds"|bc -l)
+ 
+ 
+        #add to total
+        cTotal=$(echo "$cTotal+$cTotalSeconds"| bc -l)
+        sortTotal=$(echo "$sortTotal+$sortTotalSeconds"|bc -l)
+        echo "finished $n in $cTotalSeconds vs $sortTotalSeconds"
+    done
+    #echo "totals: $cTotal $sortTotal"
+    avgC=$(echo "scale=2; $cTotal/10" | bc -l)
+    avgSort=$(echo "scale=2;$sortTotal/10" | bc -l)
+    # echo $avgC avgSort
+    printf "$n     random            no            10         ${avgC}s      ${avgSort}s\n" >> timingoutput.txt
+ 
+ 
+    n=$((1000*t))
+    ./randList $n |sort -n >/tmp/nums
+    cTotal=0
+    sortTotal=0
+    for i in {1..10}; do
+        #grab C sort time
+        cCommand=$((time ./useIntList < /tmp/nums &>/tmp/out1)2>&1)
+ 
+        cTime=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        cMins=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        cSeconds=$(echo "$cTime" | cut -c 4-)
+        cMinsAsSeconds=$(echo "$cMins * 60" | bc)
+        cTotalSeconds=$(echo "$cSeconds + $cMinsAsSeconds"|bc)
+ 
+ 
+        # #grab sort times
+        sortCommand=$((time sort -n </tmp/nums &>/tmp/out2) 2>&1)
+       
+        sortTime=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        sortMins=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        sortSeconds=$(echo $sortTime|cut -c 4-)
+        sortMinsAsSeconds=$(echo "$sortMins * 60" | bc -l)
+        sortTotalSeconds=$(echo "$sortSeconds + $sortMinsAsSeconds"|bc -l)
+ 
+        #add to total
+        cTotal=$(echo "$cTotal+$cTotalSeconds"| bc -l)
+        sortTotal=$(echo "$sortTotal+$sortTotalSeconds"|bc -l)
+        echo "finished $n in $cTotalSeconds vs $sortTotalSeconds"
+ 
+    done
+    avgC=$(echo "scale=2; $cTotal/10" | bc -l)
+    avgSort=$(echo "scale=2;$sortTotal/10" | bc -l)
+    printf "$n     sorted            no            10         ${avgC}s      ${avgSort}s\n" >> timingoutput.txt
+    #creates some big rnadom numbers
+    n=$((1000*t))
+    ./randList $n |sort -nr >/tmp/nums
+    cTotal=0
+    sortTotal=0
+ 
+    #averages 10 runs
+    for i in {1..10}; do
+ 
+ 
+        # grab C "sort" times
+        cCommand=$((time ./useIntList < /tmp/nums &>/tmp/out1)2>&1)
+ 
+        cTime=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        cMins=$(echo $cCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        cSeconds=$(echo "$cTime" | cut -c 4-)
+        cMinsAsSeconds=$(echo "$cMins * 60" | bc)
+        cTotalSeconds=$(echo "$cSeconds + $cMinsAsSeconds"|bc)
+ 
+        # #grab merge sort times
+        sortCommand=$((time sort -n </tmp/nums &>/tmp/out2) 2>&1)
+ 
+        sortTime=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 5-)
+        sortMins=$(echo $sortCommand|grep -o 'user [0-9]m[0-9]*\.[0-9]*'|cut -c 6)
+        sortSeconds=$(echo $sortTime|cut -c 4-)
+        sortMinsAsSeconds=$(echo "$sortMins * 60" | bc -l)
+        sortTotalSeconds=$(echo "$sortSeconds + $sortMinsAsSeconds"|bc -l)
+ 
+        #add to total
+        cTotal=$(echo "$cTotal+$cTotalSeconds"| bc -l)
+        sortTotal=$(echo "$sortTotal+$sortTotalSeconds"|bc -l)
+        echo "finished $n in $cTotalSeconds vs $sortTotalSeconds"
+ 
+    done
+    avgC=$(echo "scale=2; $cTotal/10" | bc -l)
+    avgSort=$(echo "scale=2;$sortTotal/10" | bc -l)
+    printf "$n     reversed          no            10           ${avgC}s      ${avgSort}s\n" >> timingoutput.txt
+done
