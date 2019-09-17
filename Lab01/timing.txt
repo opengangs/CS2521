@@ -1,0 +1,10 @@
+Size    Initial Order   Has Duplicates  Num_runs    Avg_C   Avg_sort
+10000     random            no            10         .33s      0s
+10000     sorted            no            10         .01s      0s
+10000     reversed          no            10         .01s      0s
+15000     random            no            10         .73s      0s
+15000     sorted            no            10         .01s      0s
+15000     reversed          no            10         .01s      0s
+20000     random            no            10         1.37s     0s
+20000     sorted            no            10         .02s      0s
+20000     reversed          no            10         .02s      0s
