@@ -1,0 +1,55 @@
+#!/bin/sh
+allTestsPassed=true
+
+rm -rf "tests"
+mkdir "tests"
+
+echo "Running tests"
+
+# creates 30 files from 1-100. No. of lines are randomised.
+
+# test 1: random numbers
+for t in {1..10}
+do
+    shuf -i 1-100 -n $(($RANDOM % 31)) > tests/$t
+done
+
+# test 2: sequential ordering of numbers
+for w in {11..20}
+do
+    seq $(($RANDOM % 31)) $(($RANDOM % 31)) $(($RANDOM % 31 + 31)) > tests/$w
+done
+
+# test 3: empty file.
+seq 10 1 9 > tests/21 # will print an empty file
+
+# test 4: reversed ordering of numbers
+for w in {22..30}
+do
+    seq $(($RANDOM % 31 + 31)) -$(($RANDOM % 31)) $(($RANDOM % 31)) > tests/$w
+done
+
+# compare loop.
+for s in {1..30}
+do
+    sort -n < tests/$s > tests/$s.expected
+    ./useIntList < tests/$s > tests/$s.observed
+    
+    diff tests/$s.expected tests/$s.observed > /dev/null
+    
+    if [ $? -eq 0 ]
+    then
+        tput setaf 2; echo "test $s .. passed$(tput sgr 0)"
+    else
+        tput setaf 1; echo "test $s .. failed$(tput sgr 0)"
+        sdiff tests/$s.expected tests/$s.observed
+        $allTestsPassed = false
+    fi
+done
+
+if $allTestsPassed; then
+    echo "All tests passed! You are awesome :-)"
+fi
+
+# cleans directory.
+rm -rf "tests"
