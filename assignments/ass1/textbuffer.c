@@ -244,6 +244,10 @@ void mergeTB(TB tb1, int pos, TB tb2) {
         printf ("mergeTB: Out of range!\n");
         abort();
     }
+    
+    if (tb2->nitems == 0) {
+        return;
+    }
     Line *tb1Curr = tb1->first;
     Line *tb2Curr = tb2->first;
     
@@ -366,31 +370,7 @@ TB cutTB(TB tb, int from, int to) {
  * - The user is responsible for freeing the returned list.
  */
 Match searchTB(TB tb, char *search) {
-    Match res = malloc (sizeof (res));
-    res->lineNumber = res->columnNumber = 0;
-    res->next = NULL;
-    
-    // search through each text.
-    char *string = dumpTB (tb, false);
-    
-    int row, col;
-    row = col = 1;
-    
-    int flag = 0;
-    while (!flag) {
-    
-        // if no more to check.
-        if (string == NULL) {
-            flag = 1;
-            break;
-        }
-        
-        if (string == '\0' || string == '\n') {
-            row++;
-        }
-    }
-    
-    return res;
+    return NULL;
 }
 
 /**
