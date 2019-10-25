@@ -386,7 +386,70 @@ TB cutTB(TB tb, int from, int to) {
  * - The user is responsible for freeing the returned list.
  */
 Match searchTB(TB tb, char *search) {
-    return NULL;
+    
+    if (search == NULL) abort();
+    if (strcmp (search, "") == 0) return NULL;
+    if (tb->nitems == 0) return NULL;
+    
+    Match node = malloc (sizeof (matchNode));
+    Match head = node; // pointer to head node.
+    node->next = NULL;
+    
+    Line *curr = tb->first;
+    
+    int first = 0;
+    int row = 1;
+    
+    int length = strlen (search);
+    
+    // iterate through each row.
+    while (curr != NULL) {
+    
+        char *index = strstr (curr->text, search);
+        
+        if (!first) {
+            if (index != NULL) {
+                first++;
+                
+                // found a substring.
+                node->lineNumber = row;
+                
+                // initialise first instance.
+                node->columnNumber = (index - curr->text);
+                node->columnNumber = node->columnNumber + 1; // + 1 since index starts at 1.
+                node->next = NULL;
+                
+                // find next instance.
+                index = strstr (curr->text + node->columnNumber + length, search);
+            }
+        }
+        
+        // assume we found the head.
+        while (index != NULL) {
+            // found new instance.
+            node->next = malloc (sizeof (matchNode));
+            
+            // initialise node.
+            node->next->lineNumber = row;
+            node->next->columnNumber = (index - curr->text);
+            node->next->columnNumber = node->next->columnNumber + 1;
+            node = node->next;
+            
+            node->next = NULL;
+            
+            index = strstr (curr->text + node->columnNumber + length, search);
+        }
+        row++;
+        curr = curr->next;
+    }
+    
+    if (!first) {
+        // malloc'd but unused.
+        free (head);
+        head = NULL;
+    }
+    
+    return head;
 }
 
 /**
