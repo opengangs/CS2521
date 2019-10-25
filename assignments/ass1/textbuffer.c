@@ -33,16 +33,15 @@ static TB duplicate (TB tb) {
     return new;
 }
 /** Acts like the nonstandard function, strdup() --> duplicates string */
-static char *strdup(const char *str)
-{
-    int n = strlen(str) + 1;
-    char *dup = malloc(n);
-    if (dup) {
-        strcpy (dup, str);
-    }
-    
-    return dup;
+/* Originally used: https://stackoverflow.com/a/20712069 
+static char *strdup(const char *orig) {
+   size_t bytes = strlen(orig) + 1;
+   char *copy = malloc(bytes);
+   if (copy != 0)
+     memcpy(copy, orig, bytes);
+   return copy;
 }
+*/
 
 /** Given an array of text, split the array into chunks and return the string */
 static char *stringSplit (char *text) {
@@ -173,13 +172,12 @@ char *dumpTB(TB tb, bool showLineNumbers) {
             char *strInt = calloc (1, sizeof(char)*countInt (lineNumber) + 3);
             sprintf (strInt, "%d. ", lineNumber++);
             strcat (new, strInt);
+            free (strInt);
             for (int i = 0; i < strlen (curr->text); i++) {
                 new[count++] = curr->text[i];
             }
             new[count++] = '\n';
             count = count + countInt (lineNumber) + 2;
-            
-            free (strInt);
         }
     }
     
@@ -209,18 +207,34 @@ int linesTB(TB tb) {
  * - The  program  should abort() wih an error message if 'from' or 'to'
  *   is out of range. The first line of a textbuffer is at position 1.
  */
-void addPrefixTB(TB tb, int from, int to, char *prefix) {
+void addPrefixTB (TB tb, int from, int to, char *prefix) {
+
+    // check valid inputs
     if (from > to) abort();
-    if (tb == NULL) return;
+    if (from < 1 || to > tb->nitems) {
+        printf ("addPrefixTB: Out of range!\n");
+    }
+    
+    if (tb == NULL) abort();
+    
     int count = 1;
     Line *curr = tb->first;
     
-    while (count <= to) {
-        if (count >= from) {
-            char *c = strdup (curr->text);
-            strcpy (curr->text, prefix);
-            strcat (curr->text, c);
-        }
+    // move to text with line number from.
+    while (count < from) {
+        curr = curr->next;
+        count++;
+    }
+    
+    while (count < to + 1) {
+        int newLength = strlen (curr->text) + strlen (prefix) + 1; // returns length of new string.
+        char *string = malloc (sizeof (char)*newLength);
+        strcpy (string, prefix); // string = prefix
+        strcat (string, curr->text); // string = prefix + curr->text.
+        
+        // free to avoid memory leaks.
+        free (curr->text); // set curr->text == NULL;
+        curr->text = string;
         
         curr = curr->next;
         count++;
@@ -239,6 +253,7 @@ void addPrefixTB(TB tb, int from, int to, char *prefix) {
  */
 void mergeTB(TB tb1, int pos, TB tb2) {
 
+    // check valid inputs
     if (tb1 == NULL || tb2 == NULL) return; // don't do anything xd
     if (pos > tb1->nitems + 1 || pos <= 0) {
         printf ("mergeTB: Out of range!\n");
@@ -306,6 +321,7 @@ void pasteTB(TB tb1, int pos, TB tb2) {
  */
 TB cutTB(TB tb, int from, int to) {
 	
+	// check valid inputs
 	if (from > to) abort();
 	if (from > linesTB (tb) || to < 1) {
 	    printf ("cutTB: Out of range!\n");
@@ -429,11 +445,12 @@ void deleteTB(TB tb, int from, int to) {
 	Line *end = tbTo->next;
 	
 	while (curr != end) {
-	    Line *tmp = curr->next;
-	    free (curr->text);
-	    free (curr);
-	    
-	    curr = tmp;
+
+        Line *tmp = curr->next;
+        free (curr->text);
+        free (curr);
+
+        curr = tmp;
 	}
 	
 	tb->nitems = tb->nitems - (to - from + 1);
