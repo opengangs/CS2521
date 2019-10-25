@@ -526,6 +526,9 @@ void deleteTB(TB tb, int from, int to) {
  */
 void formRichText(TB tb) {
 
+    // i'm really ceebs to do this and the bonus challenges :((
+    // pls hELP
+
 }
 
 ////////////////////////////////////////////////////////////////////////
